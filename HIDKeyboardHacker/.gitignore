@@ -1,0 +1,11 @@
+*
+!.gitignore
+
+!HIDKeyboardHacker.ioc
+
+!Core/
+!Core/Src/
+!Core/Src/main.c
+
+!patch/
+!patch/**
