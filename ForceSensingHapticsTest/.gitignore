@@ -1,0 +1,11 @@
+*
+!.gitignore
+
+!ForceSensingHapticsTest.ioc
+
+!Core/
+!Core/Src
+!Core/Src/main.c
+!Core/Inc
+!Core/Inc/get_set_bits.h
+
