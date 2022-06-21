@@ -7,5 +7,5 @@ if [[ ! -d "$DIRECTORY_TO_FORMAT" ]]; then
     exit 1
 fi
 
-find "$DIR_TO_FORMAT" -iname *.c -o -iname *.h | xargs clang-format -i --style="{BasedOnStyle: LLVM, ColumnLimit: 120, IndentWidth: 4, IndentCaseLabels: true}"
+find "$DIRECTORY_TO_FORMAT" -iname *.c -o -iname *.h | xargs clang-format -i --style="{BasedOnStyle: LLVM, ColumnLimit: 120, IndentWidth: 4, IndentCaseLabels: true}"
 

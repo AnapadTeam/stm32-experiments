@@ -1,0 +1,8 @@
+*
+!.gitignore
+
+!HIDMouseTest.ioc
+
+!Core/
+!Core/Src
+!Core/Src/main.c
