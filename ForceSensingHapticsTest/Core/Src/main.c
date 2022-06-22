@@ -23,6 +23,8 @@
 /* USER CODE BEGIN Includes */
 
 #include "get_set_bits.h"
+#include <math.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -61,8 +63,8 @@ USART_HandleTypeDef husart1;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_ADC_Init(void);
-static void MX_I2C1_Init(void);
 static void MX_USART1_Init(void);
+static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -136,21 +138,21 @@ void drv2605_calibrate() {
     i2c_write_register_byte(I2C_DRV2605_address, 0x01, 0x07); // Put device into calibration mode
 
     uint8_t feedback_control_register = i2c_read_register_byte(I2C_DRV2605_address, 0x1A);
-    set_bit((uint32_t *)&feedback_control_register, 0, 7); // ERM mode
-    // set_bits((uint32_t*) &feedback_control_register, 2, 6, 4); // Brake factor
-    // set_bits((uint32_t*) &feedback_control_register, 2, 3, 2); // Loop gain
+    set_bit((uint32_t *)&feedback_control_register, 0, 7);     // ERM mode
+    set_bits((uint32_t *)&feedback_control_register, 2, 6, 4); // Brake factor
+    set_bits((uint32_t *)&feedback_control_register, 2, 3, 2); // Loop gain
     i2c_write_register_byte(I2C_DRV2605_address, 0x1A, feedback_control_register);
 
-    /*i2c_write_register_byte(I2C_DRV2605_address, 0x16, 211); // Rated voltage of 4.5V (4.5 / 21.33e-3)
+    i2c_write_register_byte(I2C_DRV2605_address, 0x16, 211); // Rated voltage of 4.5V (4.5 / 21.33e-3)
     i2c_write_register_byte(I2C_DRV2605_address, 0x17, 211); // Overdrive voltage-clamp of ??? TODO
 
     uint8_t control_4_register = i2c_read_register_byte(I2C_DRV2605_address, 0x1E);
-    set_bits((uint32_t*) &control_4_register, 3, 5, 4); // Auto calibration time
+    set_bits((uint32_t *)&control_4_register, 3, 5, 4); // Auto calibration time
     i2c_write_register_byte(I2C_DRV2605_address, 0x1E, control_4_register);
 
     uint8_t control_1_register = i2c_read_register_byte(I2C_DRV2605_address, 0x1B);
-    set_bits((uint32_t*) &control_1_register, 0x13, 4, 0); // Drive time
-    i2c_write_register_byte(I2C_DRV2605_address, 0x1B, control_1_register);*/
+    set_bits((uint32_t *)&control_1_register, 0x13, 4, 0); // Drive time
+    i2c_write_register_byte(I2C_DRV2605_address, 0x1B, control_1_register);
 
     i2c_write_register_byte(I2C_DRV2605_address, 0x0C, 0x01); // GO bit
 
@@ -425,7 +427,6 @@ void drv2605_user_button_cycle_effect_library() {
     usart_transmit_string("Configuring DRV2605 with waveform library effects and user button sequencing...", CR_LF);
     i2c_write_register_byte(I2C_DRV2605_address, 0x01, 0x00); // Internal trigger mode
     i2c_write_register_byte(I2C_DRV2605_address, 0x03, 0x02); // Waveform library selection
-    // i2c_write_register_byte(I2C_DRV2605_address, 0x16, 234); // Rated voltage of 4.5V (4.5 / 21.33e-3)
 
     uint8_t current_waveform_effect = 1;
     uint8_t user_button_pressed = 0;
@@ -463,13 +464,83 @@ void drv2605_user_button_cycle_effect_library() {
     }
 }
 
-void load_cell_test() {
+void drv2605_user_button_rtp() {
+    usart_transmit_string("Configuring DRV2605 with real-time playback via user button triggering...", CR_LF);
+    i2c_write_register_byte(I2C_DRV2605_address, 0x01, 0x05); // RTP mode
+    i2c_write_register_byte(I2C_DRV2605_address, 0x17, 0xFF); // Max overdrive voltage-clamp
+
+    uint8_t user_button_pressed = 0;
+    uint8_t toggle = 0;
     while (1) {
-        uint32_t adc_value = HAL_ADC_GetValue(&hadc);
-        char formatted_adc_value[50];
-        sprintf(formatted_adc_value, "ADC: %d (0x%.8x)", adc_value, adc_value);
+        if (HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) == 0) {
+            if (user_button_pressed) {
+                user_button_pressed = 0;
+            } else {
+                HAL_Delay(1);
+                continue;
+            }
+        } else {
+            user_button_pressed = 1;
+            HAL_Delay(1);
+            continue;
+        }
+
+        if (toggle) {
+            toggle = 0;
+            i2c_write_register_byte(I2C_DRV2605_address, 0x02, INT8_MAX);
+            HAL_Delay(25);
+            i2c_write_register_byte(I2C_DRV2605_address, 0x02, 0);
+        } else {
+            toggle = 1;
+            i2c_write_register_byte(I2C_DRV2605_address, 0x02, INT8_MAX);
+            HAL_Delay(20);
+            i2c_write_register_byte(I2C_DRV2605_address, 0x02, 0);
+        }
+    }
+}
+
+void force_sensing_haptics_test() {
+    usart_transmit_string("Configuring DRV2605 with real-time playback in response to force sensing...", CR_LF);
+    i2c_write_register_byte(I2C_DRV2605_address, 0x01, 0x05); // RTP mode
+    i2c_write_register_byte(I2C_DRV2605_address, 0x17, 0xFF); // Max overdrive voltage-clamp
+
+    uint8_t force_pressed = 0;
+    while (1) {
+        uint32_t count = 2000;
+        uint32_t sum_in_1 = 0;
+        uint32_t sum_in_4 = 0;
+        for (int i = 0; i < count; i++) {
+            HAL_ADC_Start(&hadc);
+            HAL_ADC_PollForConversion(&hadc, HAL_timeout_5s);
+            sum_in_1 += HAL_ADC_GetValue(&hadc);
+
+            HAL_ADC_Start(&hadc);
+            HAL_ADC_PollForConversion(&hadc, HAL_timeout_5s);
+            sum_in_4 += HAL_ADC_GetValue(&hadc);
+            HAL_ADC_Stop(&hadc);
+        }
+        float adc_value_in_1 = (float)sum_in_1 / (float)count;
+        float adc_value_in_4 = (float)sum_in_4 / (float)count;
+        float absolute_difference = fabs(adc_value_in_4 - adc_value_in_1);
+
+        char formatted_adc_value[100];
+        sprintf(formatted_adc_value, "ADC IN 1: %f \t ADC IN 4: %f \t Difference: %f", adc_value_in_1, adc_value_in_4,
+                absolute_difference);
         usart_transmit_string(formatted_adc_value, CR_LF);
-        HAL_Delay(250);
+
+        if (!force_pressed && absolute_difference > 2.35) {
+            force_pressed = 1;
+
+            i2c_write_register_byte(I2C_DRV2605_address, 0x02, INT8_MAX);
+            HAL_Delay(27);
+            i2c_write_register_byte(I2C_DRV2605_address, 0x02, 0);
+        } else if (force_pressed && absolute_difference < 2.0) {
+            force_pressed = 0;
+
+            i2c_write_register_byte(I2C_DRV2605_address, 0x02, INT8_MAX);
+            HAL_Delay(37);
+            i2c_write_register_byte(I2C_DRV2605_address, 0x02, 0);
+        }
     }
 }
 
@@ -503,17 +574,19 @@ int main(void) {
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
     MX_ADC_Init();
-    MX_I2C1_Init();
     MX_USART1_Init();
+    MX_I2C1_Init();
     /* USER CODE BEGIN 2 */
 
+    // Print some new lines
     for (int i = 0; i < 3; i++) {
         usart_transmit_string("", CR_LF);
     }
 
     // drv2605_print_status();
-    drv2605_user_button_cycle_effect_library();
-    // load_cell_test();
+    // drv2605_user_button_cycle_effect_library();
+    // drv2605_user_button_rtp();
+    force_sensing_haptics_test();
 
     /*uint8_t control_3_register = i2c_read_register_byte(I2C_DRV2605_address, 0x1D);
     set_bit((uint32_t*) &control_3_register, 0, 5); // Closed Loop ERM mode
@@ -605,7 +678,7 @@ static void MX_ADC_Init(void) {
     hadc.Init.LowPowerAutoWait = DISABLE;
     hadc.Init.LowPowerAutoPowerOff = DISABLE;
     hadc.Init.ContinuousConvMode = DISABLE;
-    hadc.Init.DiscontinuousConvMode = DISABLE;
+    hadc.Init.DiscontinuousConvMode = ENABLE;
     hadc.Init.ExternalTrigConv = ADC_SOFTWARE_START;
     hadc.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
     hadc.Init.DMAContinuousRequests = DISABLE;
@@ -619,6 +692,13 @@ static void MX_ADC_Init(void) {
     sConfig.Channel = ADC_CHANNEL_1;
     sConfig.Rank = ADC_RANK_CHANNEL_NUMBER;
     sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+    if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK) {
+        Error_Handler();
+    }
+
+    /** Configure for the selected ADC regular channel to be converted.
+     */
+    sConfig.Channel = ADC_CHANNEL_4;
     if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK) {
         Error_Handler();
     }
