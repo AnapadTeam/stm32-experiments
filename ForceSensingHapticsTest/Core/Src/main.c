@@ -137,6 +137,10 @@ void drv2605_calibrate() {
     usart_transmit_string("Calibrating DRV2605...", CR_LF);
     i2c_write_register_byte(I2C_DRV2605_address, 0x01, 0x07); // Put device into calibration mode
 
+    uint8_t control_3_register = i2c_read_register_byte(I2C_DRV2605_address, 0x1D);
+    set_bit((uint32_t *)&control_3_register, 0, 5); // Closed Loop ERM mode
+    i2c_write_register_byte(I2C_DRV2605_address, 0x1D, control_3_register);
+
     uint8_t feedback_control_register = i2c_read_register_byte(I2C_DRV2605_address, 0x1A);
     set_bit((uint32_t *)&feedback_control_register, 0, 7);     // ERM mode
     set_bits((uint32_t *)&feedback_control_register, 2, 6, 4); // Brake factor
@@ -528,17 +532,17 @@ void force_sensing_haptics_test() {
                 absolute_difference);
         usart_transmit_string(formatted_adc_value, CR_LF);
 
-        if (!force_pressed && absolute_difference > 2.35) {
+        if (!force_pressed && absolute_difference > 2.3) {
             force_pressed = 1;
 
             i2c_write_register_byte(I2C_DRV2605_address, 0x02, INT8_MAX);
-            HAL_Delay(27);
+            HAL_Delay(35);
             i2c_write_register_byte(I2C_DRV2605_address, 0x02, 0);
-        } else if (force_pressed && absolute_difference < 2.0) {
+        } else if (force_pressed && absolute_difference < 2.1) {
             force_pressed = 0;
 
             i2c_write_register_byte(I2C_DRV2605_address, 0x02, INT8_MAX);
-            HAL_Delay(37);
+            HAL_Delay(30);
             i2c_write_register_byte(I2C_DRV2605_address, 0x02, 0);
         }
     }
