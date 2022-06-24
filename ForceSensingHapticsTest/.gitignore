@@ -1,11 +1,16 @@
 *
 !.gitignore
 
-!ForceSensingHapticsTest.ioc
+!mcu/
+!mcu/ForceSensingHapticsTest.ioc
+!mcu/Core/
+!mcu/Core/Src
+!mcu/Core/Src/main.c
+!mcu/Core/Inc
+!mcu/Core/Inc/get_set_bits.h
 
-!Core/
-!Core/Src
-!Core/Src/main.c
-!Core/Inc
-!Core/Inc/get_set_bits.h
+!schematic/
+!schematic/*
+*-backups/
+fp-info-cache
 
