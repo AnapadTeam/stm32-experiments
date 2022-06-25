@@ -2,7 +2,7 @@
 !.gitignore
 
 !mcu/
-!mcu/ForceSensingHapticsTest.ioc
+!mcu/TouchscreenVisualizer.ioc
 !mcu/Core/
 !mcu/Core/Src
 !mcu/Core/Src/main.c
