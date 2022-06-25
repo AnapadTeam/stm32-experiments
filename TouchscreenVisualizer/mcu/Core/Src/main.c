@@ -184,7 +184,7 @@ void poll_and_serialize_touchscreen_data() {
 
     // Continuously send touchscreen touch data
     uint8_t touchscreen_coordinate_data[8 * 10] = {0}; // 10 8-byte touch data
-    uint32_t zero_touches_sample_thresheld = 50;
+    uint32_t zero_touches_sample_threshold = 100;
     while (1) {
         // Wait until touchscreen data is ready to be read
         uint8_t buffer_ready = 0;
@@ -199,7 +199,7 @@ void poll_and_serialize_touchscreen_data() {
 
             // Sent zero touches if confident enough
             if (!zero_touches_sent && number_of_touches == 0 &&
-                ++zero_touches_samples >= zero_touches_sample_thresheld) {
+                ++zero_touches_samples >= zero_touches_sample_threshold) {
                 zero_touches_sent = 1;
                 serialize_touchscreen_coordinate_data(number_of_touches, touchscreen_coordinate_data);
             }
