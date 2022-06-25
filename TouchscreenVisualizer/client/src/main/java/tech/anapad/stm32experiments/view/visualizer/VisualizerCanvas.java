@@ -1,8 +1,10 @@
 package tech.anapad.stm32experiments.view.visualizer;
 
+import javafx.geometry.VPos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import javafx.scene.text.TextAlignment;
 import tech.anapad.stm32experiments.serialtouchscreen.model.TouchscreenConfig;
 import tech.anapad.stm32experiments.serialtouchscreen.model.TouchscreenTouch;
 
@@ -12,6 +14,7 @@ import tech.anapad.stm32experiments.serialtouchscreen.model.TouchscreenTouch;
 public class VisualizerCanvas extends Canvas {
 
     private static final double MARGIN = 25;
+    private static final double TOUCH_MULTIPLIER = 3;
 
     private final GraphicsContext graphicsContext;
 
@@ -64,15 +67,27 @@ public class VisualizerCanvas extends Canvas {
         graphicsContext.strokeRoundRect(drawX, drawY, drawWidth, drawHeight, arcSize, arcSize);
 
         // Draw touches
-        graphicsContext.setFill(Color.CORNFLOWERBLUE);
         double xMultiplier = drawWidth / touchscreenConfig.getXResolution();
         double yMultiplier = drawHeight / touchscreenConfig.getYResolution();
         for (TouchscreenTouch touchscreenTouch : touchscreenTouches) {
-            graphicsContext.fillOval(
-                    drawX + (double) touchscreenTouch.getX() * xMultiplier,
-                    drawY + (double) touchscreenTouch.getY() * yMultiplier,
-                    (double) touchscreenTouch.getSize() * xMultiplier,
-                    (double) touchscreenTouch.getSize() * yMultiplier);
+            if (touchscreenTouch == null) {
+                continue;
+            }
+
+            // Draw touchscreen touch as a circle
+            double x = drawX + (double) touchscreenTouch.getX() * xMultiplier;
+            double y = drawY + (double) touchscreenTouch.getY() * yMultiplier;
+            double width = (double) touchscreenTouch.getSize() * xMultiplier * TOUCH_MULTIPLIER;
+            double height = (double) touchscreenTouch.getSize() * yMultiplier * TOUCH_MULTIPLIER;
+            graphicsContext.setFill(Color.CORNFLOWERBLUE);
+            graphicsContext.fillOval(x - (width / 2), y - (height / 2), width, height);
+
+            // Draw touchscreen track ID number
+            graphicsContext.setFill(Color.BLACK);
+            graphicsContext.setTextAlign(TextAlignment.CENTER);
+            graphicsContext.setTextBaseline(VPos.CENTER);
+            // Add 1 to touchscreen ID since IDs start at 0
+            graphicsContext.fillText(String.valueOf(touchscreenTouch.getID() + 1), x, y);
         }
     }
 

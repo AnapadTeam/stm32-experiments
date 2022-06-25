@@ -106,7 +106,7 @@ public class SerialTouchscreenDeviceController {
                 // Config data format:
                 // c,<xResolution>,<yResolution>
 
-                String[] serialMessageCSV = serialMessage.split(",");
+                String[] serialMessageCSV = serialMessage.trim().split(",");
 
                 if (serialMessageCSV.length != 3 || !serialMessageCSV[0].equals("c")) {
                     LOGGER.warn("Received unknown message format: {}", serialMessage);
@@ -119,32 +119,35 @@ public class SerialTouchscreenDeviceController {
                     xResolution = Integer.parseInt(serialMessageCSV[1]);
                     yResolution = Integer.parseInt(serialMessageCSV[2]);
                 } catch (Exception exception) {
-                    LOGGER.error("Invalid X/Y resolution numbers from config message: {}", serialMessage);
+                    LOGGER.error("Invalid X/Y resolution numbers from config message: {}", serialMessage, exception);
                     return;
                 }
 
+                LOGGER.info("X/Y resolution numbers from config message: {}x{}", xResolution, yResolution);
                 TouchscreenConfig touchscreenConfig = new TouchscreenConfig(xResolution, yResolution);
                 touchscreenConfigConsumer.accept(touchscreenConfig);
             } else if (serialMessage.startsWith("t")) {
                 // Touch data format:
-                // t,<index>,<x>,<y>,<size>
+                // t,<index>,<id>,<x>,<y>,<size>
 
-                String[] serialMessageCSV = serialMessage.split(",");
+                String[] serialMessageCSV = serialMessage.trim().split(",");
 
-                if (serialMessageCSV.length != 5 || !serialMessageCSV[0].equals("t")) {
+                if (serialMessageCSV.length != 6 || !serialMessageCSV[0].equals("t")) {
                     LOGGER.warn("Received unknown message format: {}", serialMessage);
                     return;
                 }
 
                 int index;
+                int id;
                 int x;
                 int y;
                 int size;
                 try {
                     index = Integer.parseInt(serialMessageCSV[1]);
-                    x = Integer.parseInt(serialMessageCSV[2]);
-                    y = Integer.parseInt(serialMessageCSV[3]);
-                    size = Integer.parseInt(serialMessageCSV[4]);
+                    id = Integer.parseInt(serialMessageCSV[2]);
+                    x = Integer.parseInt(serialMessageCSV[3]);
+                    y = Integer.parseInt(serialMessageCSV[4]);
+                    size = Integer.parseInt(serialMessageCSV[5]);
                 } catch (Exception exception) {
                     LOGGER.error("Invalid touch data from message: {}", serialMessage);
                     return;
@@ -155,7 +158,20 @@ public class SerialTouchscreenDeviceController {
                     return;
                 }
 
-                TouchscreenTouch touchscreenTouch = new TouchscreenTouch(x, y, size);
+                TouchscreenTouch touchscreenTouch = null;
+                if (x != 0 && y != 0 && size != 0) {
+                    touchscreenTouch = new TouchscreenTouch(id, x, y, size);
+                    LOGGER.info("{} at index {}", touchscreenTouch, index);
+                }
+
+                // Attempt to reject "HotKnot" feature touches
+                if (index != 0 && id == 0 && x != 0 && y != 0 && size != 0) {
+                    touchscreenTouch = null;
+
+                    TouchscreenTouch hotknotTouchscreenTouch = new TouchscreenTouch(id, x, y, size);
+                    LOGGER.info("HotKnot {} at index {}", hotknotTouchscreenTouch, index);
+                }
+
                 touchscreenTouches[index] = touchscreenTouch;
                 touchscreenTouchesConsumer.accept(touchscreenTouches);
             } else {

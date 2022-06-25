@@ -26,4 +26,12 @@ public class TouchscreenConfig {
     public int getYResolution() {
         return yResolution;
     }
+
+    @Override
+    public String toString() {
+        return "TouchscreenConfig{" +
+                "xResolution=" + xResolution +
+                ", yResolution=" + yResolution +
+                '}';
+    }
 }

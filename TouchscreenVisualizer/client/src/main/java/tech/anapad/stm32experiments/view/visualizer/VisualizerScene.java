@@ -1,5 +1,6 @@
 package tech.anapad.stm32experiments.view.visualizer;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -61,7 +62,10 @@ public class VisualizerScene {
     private void setupCanvas() {
         visualizerCanvas = new VisualizerCanvas();
         setCanvasTouchscreenConfig = visualizerCanvas::setTouchscreenConfig;
-        setCanvasTouchscreenTouches = visualizerCanvas::setTouchscreenTouches;
+        setCanvasTouchscreenTouches = (touchscreenTouches) -> {
+            visualizerCanvas.setTouchscreenTouches(touchscreenTouches);
+            Platform.runLater(visualizerCanvas::paint);
+        };
     }
 
     private void postSetupCanvas() {
