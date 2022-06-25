@@ -15,3 +15,11 @@ schematic/*-backups/
 schematic/fp-info-cache
 schematic/.DS_Store
 
+!client/
+!client/**
+client/.DS_Store
+client/bin/
+client/build/
+client/.gradle/
+client/.settings
+client/.idea/

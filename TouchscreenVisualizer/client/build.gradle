@@ -1,0 +1,47 @@
+plugins {
+    id 'java'
+    id 'application'
+
+    // JavaFX
+    id "org.openjfx.javafxplugin" version "0.0.13"
+}
+
+group 'tech.anapad.stm32experiments'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 14
+targetCompatibility = 14
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Java USB-Serial library
+    implementation group: 'com.fazecast', name: 'jSerialComm', version: '2.9.2'
+
+    // JavaFX UI libraries
+    implementation group: 'org.controlsfx', name: 'controlsfx', version: '11.1.1'
+}
+
+mainClassName = 'tech.anapad.stm32experiments.TouchscreenVisualizer'
+
+applicationDefaultJvmArgs = [
+        // This prevents the JavaFX rendering from being pixelated and looking like a rainbow
+        '-Dprism.lcdtext=false']
+applicationName = 'TouchscreenVisualizer'
+application {
+    // Define the main class for the application.
+    mainClass = 'tech.anapad.stm32experiments.TouchscreenVisualizer'
+    mainModule = 'TouchscreenVisualizer'
+}
+
+distTar.enabled = false
+distZip.enabled = false
+build {
+    dependsOn installDist // Creates shell scripts to run the already built jars
+}
+
+javafx {
+    modules = ['javafx.controls', 'javafx.base', 'javafx.graphics']
+}
