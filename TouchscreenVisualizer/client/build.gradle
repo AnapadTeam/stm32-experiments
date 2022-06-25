@@ -17,6 +17,12 @@ repositories {
 }
 
 dependencies {
+    // Logging framework
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.36'
+
+    // Logging implementation
+    implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.11'
+
     // Java USB-Serial library
     implementation group: 'com.fazecast', name: 'jSerialComm', version: '2.9.2'
 
@@ -24,16 +30,16 @@ dependencies {
     implementation group: 'org.controlsfx', name: 'controlsfx', version: '11.1.1'
 }
 
-mainClassName = 'tech.anapad.stm32experiments.TouchscreenVisualizer'
+mainClassName = 'tech.anapad.stm32experiments.TouchscreenVisualizerClient'
 
 applicationDefaultJvmArgs = [
         // This prevents the JavaFX rendering from being pixelated and looking like a rainbow
         '-Dprism.lcdtext=false']
-applicationName = 'TouchscreenVisualizer'
+applicationName = 'TouchscreenVisualizerClient'
 application {
     // Define the main class for the application.
-    mainClass = 'tech.anapad.stm32experiments.TouchscreenVisualizer'
-    mainModule = 'TouchscreenVisualizer'
+    mainClass = 'tech.anapad.stm32experiments.TouchscreenVisualizerClient'
+    mainModule = 'TouchscreenVisualizerClient'
 }
 
 distTar.enabled = false

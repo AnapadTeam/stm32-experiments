@@ -7,9 +7,9 @@ import tech.anapad.stm32experiments.util.exception.ExceptionUtils;
 import tech.anapad.stm32experiments.view.MainView;
 
 /**
- * {@link TouchscreenVisualizer} is the root object of this application.
+ * {@link TouchscreenVisualizerClient} is the root object of this application.
  */
-public class TouchscreenVisualizer extends Application {
+public class TouchscreenVisualizerClient extends Application {
 
     private SerialTouchscreenDeviceController serialTouchscreenDeviceController;
     private MainView mainView;

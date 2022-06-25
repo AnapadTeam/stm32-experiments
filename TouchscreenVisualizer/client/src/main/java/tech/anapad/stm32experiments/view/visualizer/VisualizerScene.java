@@ -84,10 +84,11 @@ public class VisualizerScene {
         }
 
         try {
-            mainView.getTouchscreenVisualizer().getSerialController().initTouchscreenSerialPort(
+            mainView.getTouchscreenVisualizerClient().getSerialController().initTouchscreenSerialPort(
                     serialSystemPortName, baudRate, setCanvasTouchscreenConfig, setCanvasTouchscreenTouches);
         } catch (Exception exception) {
             ExceptionUtils.showException("Could not initialize serial port data processing!", exception, false);
+            return;
         }
     }
 
@@ -95,7 +96,7 @@ public class VisualizerScene {
      * Stops this {@link VisualizerScene}.
      */
     public void stop() {
-        mainView.getTouchscreenVisualizer().getSerialController().stop();
+        mainView.getTouchscreenVisualizerClient().getSerialController().stop();
     }
 
     public Scene getScene() {

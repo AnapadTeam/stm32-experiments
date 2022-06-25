@@ -1,4 +1,4 @@
-module TouchscreenVisualizer {
+module TouchscreenVisualizerClient {
     requires javafx.base;
     requires javafx.controls;
     requires javafx.graphics;
@@ -7,4 +7,6 @@ module TouchscreenVisualizer {
     requires org.controlsfx.controls;
 
     requires com.fazecast.jSerialComm;
+
+    requires org.slf4j;
 }

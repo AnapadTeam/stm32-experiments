@@ -118,7 +118,7 @@ public class OptionsScene {
             @Override
             public void run() {
                 Platform.runLater(() -> serialDevicesComboBox.setItems(FXCollections.observableArrayList(
-                        mainView.getTouchscreenVisualizer().getSerialController().getAvailableSerialPorts())));
+                        mainView.getTouchscreenVisualizerClient().getSerialController().getAvailableSerialPorts())));
             }
         };
         serialDevicePollerTimer.schedule(serialDevicePollerTimerTask, 500, 2500);

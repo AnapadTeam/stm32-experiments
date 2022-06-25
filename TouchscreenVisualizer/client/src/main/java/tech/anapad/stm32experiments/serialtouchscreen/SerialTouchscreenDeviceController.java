@@ -4,6 +4,8 @@ import com.fazecast.jSerialComm.SerialPort;
 import com.fazecast.jSerialComm.SerialPortEvent;
 import com.fazecast.jSerialComm.SerialPortInvalidPortException;
 import com.fazecast.jSerialComm.SerialPortMessageListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tech.anapad.stm32experiments.serialtouchscreen.model.TouchscreenConfig;
 import tech.anapad.stm32experiments.serialtouchscreen.model.TouchscreenTouch;
 
@@ -16,6 +18,8 @@ import java.util.stream.Collectors;
  * {@link SerialTouchscreenDeviceController} controls serial devices.
  */
 public class SerialTouchscreenDeviceController {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SerialTouchscreenDeviceController.class);
 
     private SerialPort connectedSerialPort;
 
@@ -63,6 +67,7 @@ public class SerialTouchscreenDeviceController {
 
         private final Consumer<TouchscreenConfig> touchscreenConfigConsumer;
         private final Consumer<TouchscreenTouch[]> touchscreenTouchesConsumer;
+        private final TouchscreenTouch[] touchscreenTouches;
 
         /**
          * Instantiates a new {@link TouchscreenSerialPortMessageHandler}.
@@ -74,6 +79,7 @@ public class SerialTouchscreenDeviceController {
                 Consumer<TouchscreenTouch[]> touchscreenTouchesConsumer) {
             this.touchscreenConfigConsumer = touchscreenConfigConsumer;
             this.touchscreenTouchesConsumer = touchscreenTouchesConsumer;
+            touchscreenTouches = new TouchscreenTouch[10];
         }
 
         @Override
@@ -93,7 +99,69 @@ public class SerialTouchscreenDeviceController {
 
         @Override
         public void serialEvent(SerialPortEvent serialPortEvent) {
-            // TODO
+            String serialMessage = new String(serialPortEvent.getReceivedData());
+            LOGGER.debug("Received serial message: {}", serialMessage);
+
+            if (serialMessage.startsWith("c")) {
+                // Config data format:
+                // c,<xResolution>,<yResolution>
+
+                String[] serialMessageCSV = serialMessage.split(",");
+
+                if (serialMessageCSV.length != 3 || !serialMessageCSV[0].equals("c")) {
+                    LOGGER.warn("Received unknown message format: {}", serialMessage);
+                    return;
+                }
+
+                int xResolution;
+                int yResolution;
+                try {
+                    xResolution = Integer.parseInt(serialMessageCSV[1]);
+                    yResolution = Integer.parseInt(serialMessageCSV[2]);
+                } catch (Exception exception) {
+                    LOGGER.error("Invalid X/Y resolution numbers from config message: {}", serialMessage);
+                    return;
+                }
+
+                TouchscreenConfig touchscreenConfig = new TouchscreenConfig(xResolution, yResolution);
+                touchscreenConfigConsumer.accept(touchscreenConfig);
+            } else if (serialMessage.startsWith("t")) {
+                // Touch data format:
+                // t,<index>,<x>,<y>,<size>
+
+                String[] serialMessageCSV = serialMessage.split(",");
+
+                if (serialMessageCSV.length != 5 || !serialMessageCSV[0].equals("t")) {
+                    LOGGER.warn("Received unknown message format: {}", serialMessage);
+                    return;
+                }
+
+                int index;
+                int x;
+                int y;
+                int size;
+                try {
+                    index = Integer.parseInt(serialMessageCSV[1]);
+                    x = Integer.parseInt(serialMessageCSV[2]);
+                    y = Integer.parseInt(serialMessageCSV[3]);
+                    size = Integer.parseInt(serialMessageCSV[4]);
+                } catch (Exception exception) {
+                    LOGGER.error("Invalid touch data from message: {}", serialMessage);
+                    return;
+                }
+
+                if (index > touchscreenTouches.length) {
+                    LOGGER.error("Touch index from message is out of bounds: {}", serialMessage);
+                    return;
+                }
+
+                TouchscreenTouch touchscreenTouch = new TouchscreenTouch(x, y, size);
+                touchscreenTouches[index] = touchscreenTouch;
+                touchscreenTouchesConsumer.accept(touchscreenTouches);
+            } else {
+                LOGGER.warn("Received unknown message format: {}", serialMessage);
+                return;
+            }
         }
     }
 }

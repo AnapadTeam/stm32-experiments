@@ -1,7 +1,7 @@
 package tech.anapad.stm32experiments;
 
 /**
- * {@link Launcher} launches the {@link TouchscreenVisualizer} application.
+ * {@link Launcher} launches the {@link TouchscreenVisualizerClient} application.
  */
 public class Launcher {
 
@@ -11,6 +11,6 @@ public class Launcher {
      * @param args the input arguments
      */
     public static void main(String[] args) {
-        TouchscreenVisualizer.main(args);
+        TouchscreenVisualizerClient.main(args);
     }
 }

@@ -4,12 +4,16 @@ import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Modality;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tech.anapad.stm32experiments.view.MainView;
 
 /**
  * {@link ExceptionUtils} is a utility class to handle exceptions.
  */
 public final class ExceptionUtils {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExceptionUtils.class);
 
     private static MainView MAIN_VIEW_INSTANCE;
 
@@ -51,11 +55,12 @@ public final class ExceptionUtils {
             });
         }
 
-        if (message != null) {
-            System.err.println("Error: " + message);
-        }
-        if (throwable != null) {
-            throwable.printStackTrace();
+        if (message != null && throwable != null) {
+            LOGGER.error(message, throwable);
+        } else if (message != null) {
+            LOGGER.error(message);
+        } else if (throwable != null) {
+            LOGGER.error("", throwable);
         }
     }
 

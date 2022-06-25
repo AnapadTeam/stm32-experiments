@@ -3,7 +3,7 @@ package tech.anapad.stm32experiments.view;
 import javafx.geometry.Rectangle2D;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import tech.anapad.stm32experiments.TouchscreenVisualizer;
+import tech.anapad.stm32experiments.TouchscreenVisualizerClient;
 import tech.anapad.stm32experiments.view.options.OptionsScene;
 import tech.anapad.stm32experiments.view.visualizer.VisualizerScene;
 
@@ -12,7 +12,7 @@ import tech.anapad.stm32experiments.view.visualizer.VisualizerScene;
  */
 public class MainView {
 
-    private final TouchscreenVisualizer touchscreenVisualizer;
+    private final TouchscreenVisualizerClient touchscreenVisualizer;
 
     private Stage stage;
     private OptionsScene optionsScene;
@@ -21,9 +21,9 @@ public class MainView {
     /**
      * Instantiates a new {@link MainView}.
      *
-     * @param touchscreenVisualizer the {@link TouchscreenVisualizer}
+     * @param touchscreenVisualizer the {@link TouchscreenVisualizerClient}
      */
-    public MainView(TouchscreenVisualizer touchscreenVisualizer) {
+    public MainView(TouchscreenVisualizerClient touchscreenVisualizer) {
         this.touchscreenVisualizer = touchscreenVisualizer;
     }
 
@@ -67,7 +67,7 @@ public class MainView {
         visualizerScene.stop();
     }
 
-    public TouchscreenVisualizer getTouchscreenVisualizer() {
+    public TouchscreenVisualizerClient getTouchscreenVisualizerClient() {
         return touchscreenVisualizer;
     }
 
