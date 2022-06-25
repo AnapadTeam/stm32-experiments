@@ -159,7 +159,7 @@ void serialize_touchscreen_coordinate_data(uint8_t number_of_touches, uint8_t *t
         uint16_t size = (touch_coordinate_data[6] << 8) | touch_coordinate_data[5];
 
         // Zero out touch data when the touch index is greater than the number of touches
-        if (touch_index > number_of_touches) {
+        if (touch_index + 1 > number_of_touches) {
             x = 0;
             y = 0;
             size = 0;
@@ -184,15 +184,25 @@ void poll_and_serialize_touchscreen_data() {
 
     // Continuously send touchscreen touch data
     uint8_t touchscreen_coordinate_data[8 * 10] = {0}; // 10 8-byte touch data
+    uint32_t zero_touches_sample_thresheld = 50;
     while (1) {
         // Wait until touchscreen data is ready to be read
         uint8_t buffer_ready = 0;
         uint8_t number_of_touches = 0;
-        uint8_t coordinate_status_register;
+        uint8_t coordinate_status_register = 0;
+        uint32_t zero_touches_samples = 0;
+        uint8_t zero_touches_sent = 0;
         do {
             coordinate_status_register = i2c_read_register_byte(I2C_GT9110_address, 0x814E);
             buffer_ready = get_bit((uint32_t *)&coordinate_status_register, 7);
             number_of_touches = get_bits((uint32_t *)&coordinate_status_register, 3, 0);
+
+            // Sent zero touches if confident enough
+            if (!zero_touches_sent && number_of_touches == 0 &&
+                ++zero_touches_samples >= zero_touches_sample_thresheld) {
+                zero_touches_sent = 1;
+                serialize_touchscreen_coordinate_data(number_of_touches, touchscreen_coordinate_data);
+            }
         } while (!buffer_ready);
 
         // Read and send all coordinate data
