@@ -184,7 +184,7 @@ void poll_and_serialize_touchscreen_data() {
 
     // Continuously send touchscreen touch data
     uint8_t touchscreen_coordinate_data[8 * 10] = {0}; // 10 8-byte touch data
-    uint32_t zero_touches_sample_threshold = 100;
+    uint32_t zero_touches_sample_threshold = 300;
     while (1) {
         // Wait until touchscreen data is ready to be read
         uint8_t buffer_ready = 0;
@@ -365,7 +365,7 @@ static void MX_USART1_Init(void) {
 
     /* USER CODE END USART1_Init 1 */
     husart1.Instance = USART1;
-    husart1.Init.BaudRate = 115200;
+    husart1.Init.BaudRate = 921600;
     husart1.Init.WordLength = USART_WORDLENGTH_8B;
     husart1.Init.StopBits = USART_STOPBITS_1;
     husart1.Init.Parity = USART_PARITY_NONE;
