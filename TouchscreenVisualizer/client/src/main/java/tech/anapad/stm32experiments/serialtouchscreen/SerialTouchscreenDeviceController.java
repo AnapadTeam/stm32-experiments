@@ -128,51 +128,48 @@ public class SerialTouchscreenDeviceController {
                 touchscreenConfigConsumer.accept(touchscreenConfig);
             } else if (serialMessage.startsWith("t")) {
                 // Touch data format:
-                // t,<index>,<id>,<x>,<y>,<size>
+                // t,<index>,<id>,<x>,<y>,<size>,<index>,<id>,<x>,<y>,<size>,<...>
 
-                String[] serialMessageCSV = serialMessage.trim().split(",");
+                final String[] serialMessageCSV = serialMessage.trim().split(",");
+                final int touchDataContentLength = 5;
 
-                if (serialMessageCSV.length != 6 || !serialMessageCSV[0].equals("t")) {
+                // Message must have content length that is a multiple of 5
+                if (((serialMessageCSV.length - 1) % touchDataContentLength) != 0) {
                     LOGGER.warn("Received unknown message format: {}", serialMessage);
                     return;
                 }
 
-                int index;
-                int id;
-                int x;
-                int y;
-                int size;
-                try {
-                    index = Integer.parseInt(serialMessageCSV[1]);
-                    id = Integer.parseInt(serialMessageCSV[2]);
-                    x = Integer.parseInt(serialMessageCSV[3]);
-                    y = Integer.parseInt(serialMessageCSV[4]);
-                    size = Integer.parseInt(serialMessageCSV[5]);
-                } catch (Exception exception) {
-                    LOGGER.error("Invalid touch data from message: {}", serialMessage);
-                    return;
+                for (int index = 1; index < serialMessageCSV.length; index += touchDataContentLength) {
+                    int touchIndex;
+                    int id;
+                    int x;
+                    int y;
+                    int size;
+                    try {
+                        touchIndex = Integer.parseInt(serialMessageCSV[index]);
+                        id = Integer.parseInt(serialMessageCSV[index + 1]);
+                        x = Integer.parseInt(serialMessageCSV[index + 2]);
+                        y = Integer.parseInt(serialMessageCSV[index + 3]);
+                        size = Integer.parseInt(serialMessageCSV[index + 4]);
+                    } catch (Exception exception) {
+                        LOGGER.error("Invalid touch data from message: {}", serialMessage);
+                        return;
+                    }
+
+                    if (touchIndex >= touchscreenTouches.length) {
+                        LOGGER.error("Touch index from message is out of bounds: {}", serialMessage);
+                        return;
+                    }
+
+                    TouchscreenTouch touchscreenTouch = null;
+                    if (x != 0 && y != 0 && size != 0) {
+                        touchscreenTouch = new TouchscreenTouch(id, x, y, size);
+                        LOGGER.info("{} at index {}", touchscreenTouch, touchIndex);
+                    }
+
+                    touchscreenTouches[touchIndex] = touchscreenTouch;
                 }
 
-                if (index > touchscreenTouches.length) {
-                    LOGGER.error("Touch index from message is out of bounds: {}", serialMessage);
-                    return;
-                }
-
-                TouchscreenTouch touchscreenTouch = null;
-                if (x != 0 && y != 0 && size != 0) {
-                    touchscreenTouch = new TouchscreenTouch(id, x, y, size);
-                    LOGGER.info("{} at index {}", touchscreenTouch, index);
-                }
-
-                // Attempt to reject "HotKnot" feature touches
-                if (index != 0 && id == 0 && x != 0 && y != 0 && size != 0) {
-                    touchscreenTouch = null;
-
-                    TouchscreenTouch hotknotTouchscreenTouch = new TouchscreenTouch(id, x, y, size);
-                    LOGGER.info("HotKnot {} at index {}", hotknotTouchscreenTouch, index);
-                }
-
-                touchscreenTouches[index] = touchscreenTouch;
                 touchscreenTouchesConsumer.accept(touchscreenTouches);
             } else {
                 LOGGER.warn("Received unknown message format: {}", serialMessage);
