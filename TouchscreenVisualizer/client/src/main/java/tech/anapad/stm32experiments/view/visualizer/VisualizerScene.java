@@ -8,9 +8,11 @@ import javafx.scene.control.Button;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import org.controlsfx.control.ToggleSwitch;
 import tech.anapad.stm32experiments.serialtouchscreen.model.TouchscreenConfig;
 import tech.anapad.stm32experiments.serialtouchscreen.model.TouchscreenTouch;
 import tech.anapad.stm32experiments.util.exception.ExceptionUtils;
+import tech.anapad.stm32experiments.util.view.BoxUtils;
 import tech.anapad.stm32experiments.view.MainView;
 
 import java.util.function.Consumer;
@@ -24,7 +26,9 @@ public class VisualizerScene {
     private final Scene scene;
     private final VBox vBox;
 
-    private HBox backButtonHBox;
+    private ToggleSwitch drawModeToggle;
+    private Button clearDrawingsButton;
+    private HBox controlButtonsHBox;
     private VisualizerCanvas visualizerCanvas;
     private Consumer<TouchscreenConfig> setCanvasTouchscreenConfig;
     private Consumer<TouchscreenTouch[]> setCanvasTouchscreenTouches;
@@ -37,16 +41,17 @@ public class VisualizerScene {
     public VisualizerScene(MainView mainView) {
         this.mainView = mainView;
 
-        setupBackButton();
+        setupControlButtons();
         setupCanvas();
 
-        vBox = new VBox(backButtonHBox, visualizerCanvas);
+        vBox = new VBox(controlButtonsHBox, visualizerCanvas);
         scene = new Scene(vBox);
 
+        postSetupControlButtons();
         postSetupCanvas();
     }
 
-    private void setupBackButton() {
+    private void setupControlButtons() {
         Button backButton = new Button("Back");
         backButton.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
             stop();
@@ -54,23 +59,35 @@ public class VisualizerScene {
             mainView.getOptionsScene().start();
         });
 
-        backButtonHBox = new HBox(backButton);
-        backButtonHBox.setAlignment(Pos.CENTER);
-        backButtonHBox.setPadding(new Insets(20));
+        drawModeToggle = new ToggleSwitch("Draw Mode");
+        drawModeToggle.setPadding(new Insets(5));
+        clearDrawingsButton = new Button("Clear Drawings");
+        clearDrawingsButton.setPadding(new Insets(5));
+
+        controlButtonsHBox = new HBox(backButton, BoxUtils.getHBoxSpacer(50), drawModeToggle, clearDrawingsButton);
+        controlButtonsHBox.setAlignment(Pos.CENTER);
+        controlButtonsHBox.setPadding(new Insets(10));
+    }
+
+    private void postSetupControlButtons() {
+        visualizerCanvas.drawModeProperty().bind(drawModeToggle.selectedProperty());
+        clearDrawingsButton.addEventHandler(MouseEvent.MOUSE_CLICKED,
+                event -> visualizerCanvas.clearTouchscreenTouches());
     }
 
     private void setupCanvas() {
         visualizerCanvas = new VisualizerCanvas();
         setCanvasTouchscreenConfig = visualizerCanvas::setTouchscreenConfig;
         setCanvasTouchscreenTouches = (touchscreenTouches) -> {
-            visualizerCanvas.setTouchscreenTouches(touchscreenTouches);
+            visualizerCanvas.reportTouchscreenTouches(touchscreenTouches);
             Platform.runLater(visualizerCanvas::paint);
         };
     }
 
     private void postSetupCanvas() {
         visualizerCanvas.widthProperty().bind(vBox.widthProperty());
-        visualizerCanvas.heightProperty().bind(vBox.heightProperty().subtract(backButtonHBox.heightProperty()));
+        visualizerCanvas.heightProperty().bind(vBox.heightProperty()
+                .subtract(controlButtonsHBox.heightProperty()));
     }
 
     /**

@@ -79,7 +79,7 @@ public class OptionsScene {
 
     private void setupBaudRateInput() {
         baudRateLabel = new Label("Baud Rate:");
-        baudRateTextField = new TextField("115200");
+        baudRateTextField = new TextField("921600");
     }
 
     private void setupVisualizeButton() {
