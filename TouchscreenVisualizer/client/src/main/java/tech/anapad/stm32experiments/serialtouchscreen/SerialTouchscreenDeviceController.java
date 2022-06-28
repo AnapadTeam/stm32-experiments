@@ -134,7 +134,8 @@ public class SerialTouchscreenDeviceController {
                 final int touchDataContentLength = 5;
 
                 // Message must have content length that is a multiple of 5
-                if (((serialMessageCSV.length - 1) % touchDataContentLength) != 0) {
+                if (serialMessageCSV.length < touchDataContentLength + 1 ||
+                        ((serialMessageCSV.length - 1) % touchDataContentLength) != 0) {
                     LOGGER.warn("Received unknown message format: {}", serialMessage);
                     return;
                 }
