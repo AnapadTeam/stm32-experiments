@@ -1,6 +1,8 @@
 *
 !.gitignore
 
+!README.md
+
 !HIDMouseTest.ioc
 
 !Core/
