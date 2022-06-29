@@ -10,8 +10,9 @@
 !mcu/Core/Inc/get_set_bits.h
 
 !schematic/
-!schematic/*
+!schematic/**
 schematic/*-backups/
+schematic/*.kicad_prl
 schematic/fp-info-cache
 schematic/.DS_Store
 
