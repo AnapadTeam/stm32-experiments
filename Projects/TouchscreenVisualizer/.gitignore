@@ -1,6 +1,9 @@
 *
 !.gitignore
 
+
+!README.md
+
 !mcu/
 !mcu/TouchscreenVisualizer.ioc
 !mcu/Core/
