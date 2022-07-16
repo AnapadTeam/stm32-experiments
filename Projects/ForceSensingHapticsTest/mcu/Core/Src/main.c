@@ -429,6 +429,9 @@ char *map_effect_name(uint8_t effect_number) {
 
 void drv2605_user_button_cycle_effect_library() {
     usart_transmit_string("Configuring DRV2605 with waveform library effects and user button sequencing...", CR_LF);
+    uint8_t feedback_control_register = i2c_read_register_byte(I2C_DRV2605_address, 0x1A);
+    set_bit((uint32_t *)&feedback_control_register, 1, 7); // LRA mode
+    i2c_write_register_byte(I2C_DRV2605_address, 0x1A, feedback_control_register);
     i2c_write_register_byte(I2C_DRV2605_address, 0x01, 0x00); // Internal trigger mode
     i2c_write_register_byte(I2C_DRV2605_address, 0x03, 0x02); // Waveform library selection
 
@@ -507,6 +510,9 @@ void force_sensing_haptics_test() {
     usart_transmit_string("Configuring DRV2605 with real-time playback in response to force sensing...", CR_LF);
     i2c_write_register_byte(I2C_DRV2605_address, 0x01, 0x05); // RTP mode
     i2c_write_register_byte(I2C_DRV2605_address, 0x17, 0xFF); // Max overdrive voltage-clamp
+    uint8_t feedback_control_register = i2c_read_register_byte(I2C_DRV2605_address, 0x1A);
+    set_bit((uint32_t *)&feedback_control_register, 1, 7); // LRA mode
+    i2c_write_register_byte(I2C_DRV2605_address, 0x1A, feedback_control_register);
 
     uint8_t force_pressed = 0;
     while (1) {
@@ -532,17 +538,17 @@ void force_sensing_haptics_test() {
                 absolute_difference);
         usart_transmit_string(formatted_adc_value, CR_LF);
 
-        if (!force_pressed && absolute_difference > 2.3) {
+        if (!force_pressed && absolute_difference > 1.65) {
             force_pressed = 1;
 
             i2c_write_register_byte(I2C_DRV2605_address, 0x02, INT8_MAX);
-            HAL_Delay(35);
+            HAL_Delay(10);
             i2c_write_register_byte(I2C_DRV2605_address, 0x02, 0);
-        } else if (force_pressed && absolute_difference < 2.1) {
+        } else if (force_pressed && absolute_difference < 1.35) {
             force_pressed = 0;
 
             i2c_write_register_byte(I2C_DRV2605_address, 0x02, INT8_MAX);
-            HAL_Delay(30);
+            HAL_Delay(8);
             i2c_write_register_byte(I2C_DRV2605_address, 0x02, 0);
         }
     }
